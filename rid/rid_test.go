@@ -25,3 +25,31 @@ func TestRid_String(t *testing.T) {
 		t.Error("rid.String() != rid.String()")
 	}
 }
+
+func TestRid_Collision(t *testing.T) {
+
+	oneMillion := 1000000
+
+	ridxChn := make(chan string, oneMillion)
+
+	for i := 0; i < oneMillion; i++ {
+		r := New("test")
+		go func() {
+			ridxChn <- r.String()
+		}()
+	}
+
+	ridxMap := make(map[string]bool)
+
+	for i := 0; i < oneMillion; i++ {
+		id := <-ridxChn
+		if _, ok := ridxMap[id]; ok {
+			t.Error("collision", id)
+		}
+		ridxMap[id] = true
+	}
+
+	if len(ridxMap) != oneMillion {
+		t.Error("len(ridxMap) != oneMillion")
+	}
+}
