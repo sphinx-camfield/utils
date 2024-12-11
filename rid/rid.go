@@ -35,46 +35,63 @@ func New(res string) Rid {
 	}
 }
 
-// String returns the string representation of the Rid.
-func (rid Rid) String() string {
-	return rid.res + "." + rid.idx + "." + rid.uni
-}
-
-// Parse parses the given string and returns the Rid.
-func Parse(s string, res string) (Rid, error) {
+// Scan parses the given string and returns the Rid.
+func Scan(s string, rid *Rid) error {
 	parts := strings.Split(s, ".")
-	rid := Rid{}
 
 	if len(parts) != 3 {
-		return rid, fmt.Errorf("invalid rid")
-	}
-
-	if parts[0] != res {
-		return rid, fmt.Errorf("invalid resource name")
+		return fmt.Errorf("invalid rid")
 	}
 
 	idxTs, err := strconv.ParseInt(parts[1], 16, 64)
 	if err != nil {
-		return rid, fmt.Errorf("invalid index")
+		return fmt.Errorf("invalid index")
 	}
 
 	if time.Now().UnixNano()-idxTs < 0 {
 		// The index is in the future.
-		return rid, fmt.Errorf("invalid index")
+		return fmt.Errorf("invalid index")
 	}
 
 	decodeString, err := base64.URLEncoding.DecodeString(parts[2])
 	if err != nil {
-		return rid, fmt.Errorf("invalid unique identifier")
+		return fmt.Errorf("invalid unique identifier")
 	}
 
 	if _, err = uuid.Parse(string(decodeString)); err != nil {
-		return rid, fmt.Errorf("invalid unique identifier")
+		return fmt.Errorf("invalid unique identifier")
 	}
 
 	rid.res = parts[0]
 	rid.idx = parts[1]
 	rid.uni = parts[2]
 
-	return rid, nil
+	return nil
+}
+
+func Parse(s string) (Rid, error) {
+	var rid Rid
+	err := Scan(s, &rid)
+	return rid, err
+}
+
+func Must(s string) Rid {
+	rid, err := Parse(s)
+	if err != nil {
+		panic(err)
+	}
+	return rid
+}
+
+// String returns the string representation of the Rid.
+func (rid Rid) String() string {
+	return rid.res + "." + rid.idx + "." + rid.uni
+}
+
+func (rid Rid) MarshalJSON() ([]byte, error) {
+	return []byte(rid.String()), nil
+}
+
+func (rid Rid) UnmarshalJSON(bytes []byte) error {
+	return Scan(string(bytes), &rid)
 }

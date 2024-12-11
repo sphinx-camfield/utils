@@ -15,7 +15,7 @@ func TestRid_String(t *testing.T) {
 		t.Error("strings.HasPrefix(r.String(), \"test.\") == false")
 	}
 
-	rid, err := Parse(r.String(), "test")
+	rid, err := Parse(r.String())
 
 	if err != nil {
 		t.Error(err)
@@ -51,5 +51,33 @@ func TestRid_Collision(t *testing.T) {
 
 	if len(ridxMap) != oneMillion {
 		t.Error("len(ridxMap) != oneMillion")
+	}
+}
+
+func TestScan(t *testing.T) {
+	rid := New("test")
+	ridStr := rid.String()
+
+	var oRid Rid
+
+	err := Scan(ridStr, &oRid)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	if rid != oRid {
+		t.Error("r.String() != rid")
+	}
+}
+
+func TestMust(t *testing.T) {
+	rid := New("test")
+	ridStr := rid.String()
+
+	oRid := Must(ridStr)
+
+	if rid != oRid {
+		t.Error("r.String() != rid")
 	}
 }
