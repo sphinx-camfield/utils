@@ -1,3 +1,3 @@
-module github.com/sphinx-software/sticker/utils
+module github.com/sphinx-sticker/utils
 
 go 1.23.3
