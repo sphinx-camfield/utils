@@ -1,4 +1,4 @@
-module github.com/sphinx-sticker/utils
+module github.com/sphinx-camfield/utils
 
 go 1.23.3
 
