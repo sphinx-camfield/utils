@@ -59,7 +59,7 @@ func TestScan(t *testing.T) {
 	rid := New("test")
 	ridStr := rid.String()
 
-	var oRid *Rid
+	oRid := &Rid{}
 
 	err := Scan(ridStr, oRid)
 
@@ -67,7 +67,7 @@ func TestScan(t *testing.T) {
 		t.Error(err)
 	}
 
-	if rid != oRid {
+	if rid.String() != oRid.String() {
 		t.Error("r.String() != rid")
 	}
 }
@@ -78,7 +78,7 @@ func TestMust(t *testing.T) {
 
 	oRid := Must(ridStr)
 
-	if rid != oRid {
+	if rid.String() != oRid.String() {
 		t.Error("r.String() != rid")
 	}
 }
@@ -100,7 +100,7 @@ func TestRid_MarshalJSON(t *testing.T) {
 		t.Error("string(b) != `\"`+ridStr+`\"`")
 	}
 
-	var oRid *Rid
+	oRid := Must(ridStr)
 
 	err = json.Unmarshal(b, &oRid)
 
@@ -108,7 +108,7 @@ func TestRid_MarshalJSON(t *testing.T) {
 		t.Error(err)
 	}
 
-	if rid != oRid {
+	if rid.String() != oRid.String() {
 		t.Error("Unmarshal(rid) != rid")
 	}
 }
