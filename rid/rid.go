@@ -2,6 +2,7 @@ package rid
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"github.com/google/uuid"
 	"strconv"
@@ -23,12 +24,12 @@ type Rid struct {
 }
 
 // New creates a new Rid with the given resource name.
-func New(res string) Rid {
+func New(res string) *Rid {
 	// idx: time in hex
 	idx := strconv.FormatInt(time.Now().UnixNano(), 16)
 	// uni: uuid in base64
 	uni, _ := strings.CutSuffix(base64.URLEncoding.EncodeToString([]byte(uuid.NewString())), "=")
-	return Rid{
+	return &Rid{
 		res: res,
 		idx: idx,
 		uni: uni,
@@ -69,13 +70,16 @@ func Scan(s string, rid *Rid) error {
 	return nil
 }
 
-func Parse(s string) (Rid, error) {
-	var rid Rid
-	err := Scan(s, &rid)
+func Parse(s string) (*Rid, error) {
+	var rid *Rid
+	err := Scan(s, rid)
+	if err != nil {
+		return nil, err
+	}
 	return rid, err
 }
 
-func Must(s string) Rid {
+func Must(s string) *Rid {
 	rid, err := Parse(s)
 	if err != nil {
 		panic(err)
@@ -84,14 +88,18 @@ func Must(s string) Rid {
 }
 
 // String returns the string representation of the Rid.
-func (rid Rid) String() string {
+func (rid *Rid) String() string {
 	return rid.res + "." + rid.idx + "." + rid.uni
 }
 
-func (rid Rid) MarshalJSON() ([]byte, error) {
-	return []byte(rid.String()), nil
+func (rid *Rid) MarshalJSON() ([]byte, error) {
+	return json.Marshal(rid.String())
 }
 
-func (rid Rid) UnmarshalJSON(bytes []byte) error {
-	return Scan(string(bytes), &rid)
+func (rid *Rid) UnmarshalJSON(bytes []byte) error {
+	var s string
+	if err := json.Unmarshal(bytes, &s); err != nil {
+		return err
+	}
+	return Scan(s, rid)
 }

@@ -1,6 +1,7 @@
 package rid
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"testing"
@@ -58,9 +59,9 @@ func TestScan(t *testing.T) {
 	rid := New("test")
 	ridStr := rid.String()
 
-	var oRid Rid
+	var oRid *Rid
 
-	err := Scan(ridStr, &oRid)
+	err := Scan(ridStr, oRid)
 
 	if err != nil {
 		t.Error(err)
@@ -79,5 +80,35 @@ func TestMust(t *testing.T) {
 
 	if rid != oRid {
 		t.Error("r.String() != rid")
+	}
+}
+
+func TestRid_MarshalJSON(t *testing.T) {
+
+	rid := New("test")
+	ridStr := rid.String()
+
+	b, err := json.Marshal(&rid)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	fmt.Println("b: ", string(b))
+
+	if string(b) != "\""+ridStr+"\"" {
+		t.Error("string(b) != `\"`+ridStr+`\"`")
+	}
+
+	var oRid *Rid
+
+	err = json.Unmarshal(b, &oRid)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	if rid != oRid {
+		t.Error("Unmarshal(rid) != rid")
 	}
 }
