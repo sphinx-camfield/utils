@@ -71,7 +71,7 @@ func Scan(s string, rid *Rid) error {
 }
 
 func Parse(s string) (*Rid, error) {
-	var rid *Rid
+	rid := &Rid{}
 	err := Scan(s, rid)
 	if err != nil {
 		return nil, err
