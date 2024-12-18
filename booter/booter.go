@@ -2,8 +2,10 @@ package booter
 
 import "fmt"
 
+// Registra is a service registration function.
 type Registra func() (interface{}, error)
 
+// Booter is a simple service container that supports booting services with dependencies.
 type Booter struct {
 	registry map[string]Registra
 	booted   map[string]interface{}
@@ -13,6 +15,7 @@ type Booter struct {
 	booting []string
 }
 
+// NewBooterWithCached creates a new Booter with a cached map of booted services.
 func NewBooterWithCached(booted map[string]interface{}) *Booter {
 	return &Booter{
 		registry: make(map[string]Registra),
@@ -21,14 +24,17 @@ func NewBooterWithCached(booted map[string]interface{}) *Booter {
 	}
 }
 
+// NewBooter creates a new Booter.
 func NewBooter() *Booter {
 	return NewBooterWithCached(map[string]interface{}{})
 }
 
-func (b *Booter) cache(svc string, instance interface{}) {
+// Cache caches instead of calling the service registration function.
+func (b *Booter) Cache(svc string, instance interface{}) {
 	b.booted[svc] = instance
 }
 
+// Register registers a service with a registration function.
 func (b *Booter) Register(svc string, r Registra) {
 	if _, ok := b.registry[svc]; ok {
 		panic(fmt.Sprintf("service %s already registered", svc))
@@ -36,6 +42,7 @@ func (b *Booter) Register(svc string, r Registra) {
 	b.registry[svc] = r
 }
 
+// Get gets a service instance by name.
 func (b *Booter) Get(svc string) (svcInstance interface{}, err error) {
 	if sInst, ok := b.booted[svc]; ok {
 		return sInst, nil
@@ -67,6 +74,7 @@ func (b *Booter) Get(svc string) (svcInstance interface{}, err error) {
 	return sInst, nil
 }
 
+// MustGet gets a service instance by name and panics if an error occurs.
 func (b *Booter) MustGet(svc string) (svcInstance interface{}) {
 	sInst, err := b.Get(svc)
 	if err != nil {

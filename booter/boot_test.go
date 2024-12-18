@@ -116,3 +116,19 @@ func TestBooter_MustGetPanic(t *testing.T) {
 
 	booter.MustGet("not-registered")
 }
+
+func TestBooter_Cache(t *testing.T) {
+	booter := NewBooterWithCached(map[string]interface{}{
+		"foo": "bar",
+	})
+
+	booter.Cache("test", "test-service-instance")
+
+	if booter.MustGet("test").(string) != "test-service-instance" {
+		t.Error("test service is not `test-service-instance`")
+	}
+
+	if booter.MustGet("foo").(string) != "bar" {
+		t.Error("foo service is not `bar`")
+	}
+}
