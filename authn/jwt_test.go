@@ -60,6 +60,24 @@ func (suite *AuthnTestSuite) TestAuthenticated() {
 	suite.Equal(1, suite.nextCalled)
 }
 
+func (suite *AuthnTestSuite) TestAuthWrongSig() {
+	wrongTk := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"sub": "test-id",
+	})
+	wrongTkStr, err := wrongTk.SignedString([]byte("wrong-secret"))
+	suite.NoError(err)
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.Header.Add("Authorization", "Bearer "+wrongTkStr)
+
+	rr := httptest.NewRecorder()
+
+	suite.handler.ServeHTTP(rr, req)
+	suite.Equal(http.StatusUnauthorized, rr.Code)
+	suite.True(strings.HasPrefix(rr.Body.String(), "InvalidToken"))
+	suite.Equal(0, suite.nextCalled)
+}
+
 func (suite *AuthnTestSuite) TestNoToken() {
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	rr := httptest.NewRecorder()
