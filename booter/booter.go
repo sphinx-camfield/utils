@@ -9,16 +9,15 @@ type Registra func() (interface{}, error)
 type Booter struct {
 	registry map[string]Registra
 	booted   map[string]interface{}
-
-	// The booting sequence of services.
-	// This is useful for checking circular dependencies.
-	booting []string
+	aliases  map[string]string
+	booting  []string
 }
 
 // NewBooterWithCached creates a new Booter with a cached map of booted services.
 func NewBooterWithCached(booted map[string]interface{}) *Booter {
 	return &Booter{
 		registry: make(map[string]Registra),
+		aliases:  make(map[string]string),
 		booted:   booted,
 		booting:  []string{},
 	}
@@ -44,6 +43,12 @@ func (b *Booter) Register(svc string, r Registra) {
 
 // Get gets a service instance by name.
 func (b *Booter) Get(svc string) (svcInstance interface{}) {
+	// Check if the service is an alias
+	if sourceSvc, ok := b.aliases[svc]; ok {
+		// Get the source service
+		return b.Get(sourceSvc)
+	}
+
 	if sInst, ok := b.booted[svc]; ok {
 		return sInst
 	}
@@ -72,4 +77,23 @@ func (b *Booter) Get(svc string) (svcInstance interface{}) {
 	b.booted[svc] = sInst
 
 	return sInst
+}
+
+// Alias creates an alias for a service name.
+func (b *Booter) Alias(source string, alias string) {
+
+	// Check if source and alias are the same
+	if source == alias {
+		panic("source and alias cannot be the same")
+	}
+
+	// Check if source is already an alias
+	// If it is, set the alias to the source of the alias
+	if origin, sourceIsAlias := b.aliases[source]; sourceIsAlias {
+		b.Alias(origin, alias)
+		return
+	}
+
+	// Otherwise, set the alias to the source
+	b.aliases[alias] = source
 }

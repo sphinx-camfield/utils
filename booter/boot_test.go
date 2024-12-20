@@ -104,3 +104,68 @@ func TestBooter_Cache(t *testing.T) {
 		t.Error("foo service is not `bar`")
 	}
 }
+
+func TestBooter_Alias(t *testing.T) {
+	booter := NewBooter()
+
+	booter.Register("test", func() (interface{}, error) {
+		return "test-service-instance", nil
+	})
+
+	booter.Alias("test", "test-alias")
+
+	if booter.Get("test-alias").(string) != "test-service-instance" {
+		t.Error("test-alias service is not `test-service-instance`")
+	}
+}
+
+func TestBooter_AliasSameAsSource(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Error("Alias did not panic")
+		}
+	}()
+
+	booter := NewBooter()
+	booter.Alias("test", "test")
+}
+
+func TestBooter_CyclicAliasToAlias(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Error("Alias did not panic")
+		}
+	}()
+	booter := NewBooter()
+	booter.Alias("test", "alias")
+	booter.Alias("alias", "test")
+}
+
+func TestBooter_AliasToAlias(t *testing.T) {
+	booter := NewBooter()
+	booter.Register("test", func() (interface{}, error) {
+		return "test-service-instance", nil
+	})
+	booter.Alias("test", "alias")
+	booter.Alias("alias", "alias2")
+	booter.Alias("test", "alias3")
+
+	if booter.Get("alias2").(string) != "test-service-instance" {
+		t.Error("alias2 service is not `test-service-instance`")
+	}
+
+	if booter.Get("alias3").(string) != "test-service-instance" {
+		t.Error("alias3 service is not `test-service-instance`")
+	}
+}
+
+func TestBooter_AliasToNonExistence(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Error("Alias did not panic")
+		}
+	}()
+	booter := NewBooter()
+	booter.Alias("test", "alias")
+	booter.Get("alias")
+}
