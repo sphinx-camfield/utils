@@ -3,7 +3,7 @@ package booter
 import "testing"
 
 func TestBooter_RegisterGetWithDep(t *testing.T) {
-	booter := NewBooter()
+	booter := NewContainer()
 
 	booter.Register("test", func() (interface{}, error) {
 		dep := booter.Get("test.dep")
@@ -23,7 +23,7 @@ func TestBooter_GetOnce(t *testing.T) {
 
 	svcRegistraCalled := 0
 
-	booter := NewBooter()
+	booter := NewContainer()
 
 	booter.Register("test", func() (interface{}, error) {
 		svcRegistraCalled++
@@ -46,7 +46,7 @@ func TestBooter_CircularDependency(t *testing.T) {
 		}
 	}()
 
-	booter := NewBooter()
+	booter := NewContainer()
 	booter.Register("svc1", func() (interface{}, error) {
 		_ = booter.Get("svc2")
 		return "svc1", nil
@@ -64,7 +64,7 @@ func TestBooter_CircularDependency(t *testing.T) {
 }
 
 func TestBooter_MustGet(t *testing.T) {
-	booter := NewBooter()
+	booter := NewContainer()
 
 	booter.Register("test", func() (interface{}, error) {
 		return "test-service-instance", nil
@@ -78,7 +78,7 @@ func TestBooter_MustGet(t *testing.T) {
 }
 
 func TestBooter_MustGetPanic(t *testing.T) {
-	booter := NewBooter()
+	booter := NewContainer()
 
 	defer func() {
 		if r := recover(); r == nil {
@@ -106,7 +106,7 @@ func TestBooter_Cache(t *testing.T) {
 }
 
 func TestBooter_Alias(t *testing.T) {
-	booter := NewBooter()
+	booter := NewContainer()
 
 	booter.Register("test", func() (interface{}, error) {
 		return "test-service-instance", nil
@@ -126,7 +126,7 @@ func TestBooter_AliasSameAsSource(t *testing.T) {
 		}
 	}()
 
-	booter := NewBooter()
+	booter := NewContainer()
 	booter.Alias("test", "test")
 }
 
@@ -136,13 +136,13 @@ func TestBooter_CyclicAliasToAlias(t *testing.T) {
 			t.Error("Alias did not panic")
 		}
 	}()
-	booter := NewBooter()
+	booter := NewContainer()
 	booter.Alias("test", "alias")
 	booter.Alias("alias", "test")
 }
 
 func TestBooter_AliasToAlias(t *testing.T) {
-	booter := NewBooter()
+	booter := NewContainer()
 	booter.Register("test", func() (interface{}, error) {
 		return "test-service-instance", nil
 	})
@@ -165,7 +165,7 @@ func TestBooter_AliasToNonExistence(t *testing.T) {
 			t.Error("Alias did not panic")
 		}
 	}()
-	booter := NewBooter()
+	booter := NewContainer()
 	booter.Alias("test", "alias")
 	booter.Get("alias")
 }
