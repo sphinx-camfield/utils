@@ -43,21 +43,21 @@ func (b *Booter) Register(svc string, r Registra) {
 }
 
 // Get gets a service instance by name.
-func (b *Booter) Get(svc string) (svcInstance interface{}, err error) {
+func (b *Booter) Get(svc string) (svcInstance interface{}) {
 	if sInst, ok := b.booted[svc]; ok {
-		return sInst, nil
+		return sInst
 	}
 
 	r, ok := b.registry[svc]
 
 	if !ok {
-		return nil, fmt.Errorf("service %s not registered", svc)
+		panic("service %s not registered")
 	}
 
 	// Check for circular dependencies
 	for _, s := range b.booting {
 		if s == svc {
-			return nil, fmt.Errorf("circular dependency detected: %v", append(b.booting, svc))
+			panic(fmt.Sprintf("circular dependency detected: %s", svc))
 		}
 	}
 
@@ -66,19 +66,10 @@ func (b *Booter) Get(svc string) (svcInstance interface{}, err error) {
 	b.booting = b.booting[:len(b.booting)-1]
 
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
 	b.booted[svc] = sInst
 
-	return sInst, nil
-}
-
-// MustGet gets a service instance by name and panics if an error occurs.
-func (b *Booter) MustGet(svc string) (svcInstance interface{}) {
-	sInst, err := b.Get(svc)
-	if err != nil {
-		panic(err)
-	}
 	return sInst
 }
