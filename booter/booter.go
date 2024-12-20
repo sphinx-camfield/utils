@@ -56,7 +56,7 @@ func (b *Booter) Get(svc string) (svcInstance interface{}) {
 	r, ok := b.registry[svc]
 
 	if !ok {
-		panic("service %s not registered")
+		panic("service [" + svc + "] not registered")
 	}
 
 	// Check for circular dependencies
